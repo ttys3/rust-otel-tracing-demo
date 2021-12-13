@@ -1,8 +1,8 @@
 run:
-	env RUST_LOG=debug cargo run
+	env RUST_LOG=debug RUSTFLAGS="--cfg unsound_local_offset" cargo run
 
 trace:
-	env RUST_LOG=trace cargo run
+	env RUST_LOG=trace RUSTFLAGS="--cfg unsound_local_offset" cargo run
 
 ui:
 	xdg-open http://localhost:16686/

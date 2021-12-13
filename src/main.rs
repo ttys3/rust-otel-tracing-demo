@@ -1,3 +1,5 @@
+mod util;
+
 use log;
 use opentelemetry::{global, sdk::export::trace::stdout};
 use tracing::{error, info, span, warn};
@@ -29,7 +31,8 @@ fn main() {
     //     .with_pretty_print(true)
     //     .install_simple();
 
-    env_logger::init();
+    // env_logger::init();
+    util::init_env_logger();
 
     // this will set global default and init logger
     // tracing_subscriber::fmt::init();
@@ -46,7 +49,15 @@ fn main() {
         // .with_tracer(stdout_tracer)
         .with_tracer(jaeger_tracer);
 
-    let fmt_layer = fmt::layer().with_target(false);
+    // let format = fmt::format()
+    //     .pretty()
+    //     .with_source_location(true);
+
+    // warning: when using `LocalTime`, you'll need to build with `RUSTFLAGS="--cfg unsound_local_offset"` otherwise not tracing log will shown
+    // see https://github.com/tokio-rs/tracing/pull/1699
+    let fmt_layer =fmt::layer()
+        .with_timer(fmt::time::LocalTime::rfc_3339());
+
     let filter_layer = EnvFilter::try_from_default_env()
         .or_else(|_| EnvFilter::try_new("info"))
         .unwrap();
@@ -55,9 +66,9 @@ fn main() {
     // that impls `LookupSpan`
     // https://docs.rs/tracing-subscriber/0.3.3/tracing_subscriber/fmt/index.html#composing-layers
     let subscriber = Registry::default()
-        .with(telemetry) /*.with(env_filter)*/
         .with(filter_layer)
-        .with(fmt_layer);
+        .with(fmt_layer)
+        .with(telemetry); /*.with(env_filter)*/
 
     if let Err(err) = tracing::subscriber::set_global_default(subscriber) {
         panic!("setting tracing default subscriber failed, err={}", err)
