@@ -74,9 +74,9 @@ fn main() {
         panic!("setting tracing default subscriber failed, err={}", err)
     }
 
-    log::trace!("iiii this is trace level log");
-    log::info!("iiii this is info level log");
-    log::error!("eeee this is error level log");
+    log::trace!("I: this is trace level log");
+    log::info!("II: this is info level log");
+    log::error!("III: this is error level log");
 
     // Trace executed code
     // tracing::subscriber::with_default(subscriber, || {
@@ -122,6 +122,8 @@ fn main() {
         info!("xxxx exit span. cost=60ms");
     }
 
+    tracing::info!("begin call global::shutdown_tracer_provider");
     // Shutdown trace pipeline
     global::shutdown_tracer_provider();
+    tracing::info!("end call global::shutdown_tracer_provider");
 }
