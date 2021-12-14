@@ -5,8 +5,11 @@
 3. `env_logger::init()` will logging in **UTC** timezone, to use **localtime**, you need build your own `Logger`.
 4. `tracing_subscriber::fmt::layer().with_timer(fmt::time::LocalTime::rfc_3339())` will not work 
 and the log will **disappear** if you do not build with `RUSTFLAGS="--cfg unsound_local_offset"` 
+5. `SubscriberInitExt::init()` will set global default subscriber and init `tracing-log` (also init default `Logger`)
 
 https://docs.rs/tracing-subscriber/latest/tracing_subscriber/layer/index.html#runtime-configuration-with-layers
+
+https://docs.rs/tracing-subscriber/latest/tracing_subscriber/util/trait.SubscriberInitExt.html#method.init
 
 https://github.com/open-telemetry/opentelemetry-rust
 

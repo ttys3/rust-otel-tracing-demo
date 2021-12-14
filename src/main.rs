@@ -32,8 +32,9 @@ fn main() {
     //     .with_pretty_print(true)
     //     .install_simple();
 
+    // no need init Logger here, SubscriberInitExt.init will init the Logger
     // env_logger::init();
-    util::init_env_logger();
+    // util::init_env_logger();
 
     // this will set global default and init logger
     // tracing_subscriber::fmt::init();
@@ -63,11 +64,13 @@ fn main() {
     // Use the tracing subscriber `Registry`, or any other subscriber
     // that impls `LookupSpan`
     // https://docs.rs/tracing-subscriber/0.3.3/tracing_subscriber/fmt/index.html#composing-layers
-    let subscriber = Registry::default().with(filter_layer).with(fmt_layer).with(telemetry); /*.with(env_filter)*/
+    // init() will set_global_default() and init tracing-log (also init default Logger)
+    // see https://docs.rs/tracing-subscriber/0.3.3/tracing_subscriber/util/trait.SubscriberInitExt.html#method.init
+    Registry::default().with(filter_layer).with(fmt_layer).with(telemetry).init(); /*.with(env_filter)*/
 
-    if let Err(err) = tracing::subscriber::set_global_default(subscriber) {
-        panic!("setting tracing default subscriber failed, err={}", err)
-    }
+    // if let Err(err) = tracing::subscriber::set_global_default(subscriber) {
+    //     panic!("setting tracing default subscriber failed, err={}", err)
+    // }
 
     log::trace!("I: this is trace level log");
     log::info!("II: this is info level log");

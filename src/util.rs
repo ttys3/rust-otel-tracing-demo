@@ -2,6 +2,7 @@ use env_logger::{Builder as LogBuilder, Target as LogTarget};
 use log::LevelFilter;
 use std::io::Write;
 
+#[allow(dead_code)]
 pub fn init_env_logger() {
     LogBuilder::new()
         .format(|buf, record| {
