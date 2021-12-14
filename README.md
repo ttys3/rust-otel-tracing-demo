@@ -6,6 +6,8 @@
 4. `tracing_subscriber::fmt::layer().with_timer(fmt::time::LocalTime::rfc_3339())` will not work 
 and the log will **disappear** if you do not build with `RUSTFLAGS="--cfg unsound_local_offset"` 
 
+https://docs.rs/tracing-subscriber/latest/tracing_subscriber/layer/index.html#runtime-configuration-with-layers
+
 https://github.com/open-telemetry/opentelemetry-rust
 
 https://crates.io/crates/opentelemetry
