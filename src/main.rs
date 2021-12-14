@@ -1,11 +1,12 @@
 mod util;
 
-use log;
-use opentelemetry::{global, sdk::export::trace::stdout};
+// use opentelemetry::sdk::export::trace::stdout;
+use opentelemetry::global;
 use tracing::{error, info, span, warn};
 // use tracing_log::LogTracer;
-use tracing_subscriber::{filter::LevelFilter, fmt, layer::SubscriberExt, EnvFilter, Registry};
+use tracing_subscriber::{fmt, layer::SubscriberExt, EnvFilter, Registry};
 
+#[allow(unused_imports)]
 use tracing_subscriber::prelude::*;
 
 fn main() {
@@ -55,20 +56,14 @@ fn main() {
 
     // warning: when using `LocalTime`, you'll need to build with `RUSTFLAGS="--cfg unsound_local_offset"` otherwise not tracing log will shown
     // see https://github.com/tokio-rs/tracing/pull/1699
-    let fmt_layer =fmt::layer()
-        .with_timer(fmt::time::LocalTime::rfc_3339());
+    let fmt_layer = fmt::layer().with_timer(fmt::time::LocalTime::rfc_3339());
 
-    let filter_layer = EnvFilter::try_from_default_env()
-        .or_else(|_| EnvFilter::try_new("info"))
-        .unwrap();
+    let filter_layer = EnvFilter::try_from_default_env().or_else(|_| EnvFilter::try_new("info")).unwrap();
 
     // Use the tracing subscriber `Registry`, or any other subscriber
     // that impls `LookupSpan`
     // https://docs.rs/tracing-subscriber/0.3.3/tracing_subscriber/fmt/index.html#composing-layers
-    let subscriber = Registry::default()
-        .with(filter_layer)
-        .with(fmt_layer)
-        .with(telemetry); /*.with(env_filter)*/
+    let subscriber = Registry::default().with(filter_layer).with(fmt_layer).with(telemetry); /*.with(env_filter)*/
 
     if let Err(err) = tracing::subscriber::set_global_default(subscriber) {
         panic!("setting tracing default subscriber failed, err={}", err)
