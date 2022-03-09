@@ -1,15 +1,20 @@
 mod util;
 
-// use opentelemetry::sdk::export::trace::stdout;
 use opentelemetry::global;
-use tracing::{error, info, span, warn};
+use opentelemetry_otlp::Protocol;
+use opentelemetry_otlp::WithExportConfig;
+use tracing::{error, info, info_span, span, trace_span, warn};
 // use tracing_log::LogTracer;
 use tracing_subscriber::{fmt, layer::SubscriberExt, EnvFilter, Registry};
 
 #[allow(unused_imports)]
 use tracing_subscriber::prelude::*;
 
-fn main() {
+use std::time::Duration;
+// use tonic::metadata::*;
+
+#[tokio::main]
+async fn main() {
     // To convert log::Records as tracing::Events, set LogTracer as the default logger by calling its init or init_with_filter methods
     // https://docs.rs/tracing-log/latest/tracing_log/#usage
     // https://docs.rs/tracing-log/latest/src/tracing_log/lib.rs.html#58
@@ -40,16 +45,30 @@ fn main() {
     // tracing_subscriber::fmt::init();
 
     // Create a jaeger exporter pipeline for a `trace_demo` service.
-    let jaeger_tracer = opentelemetry_jaeger::new_pipeline()
+    let _jaeger_tracer = opentelemetry_jaeger::new_pipeline()
         .with_service_name("trace_demo")
         .with_collector_endpoint("http://localhost:14268/api/traces")
         .install_simple()
         .expect("Error initializing Jaeger exporter");
 
+    let otlp_tracer = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(
+            opentelemetry_otlp::new_exporter()
+                .tonic()
+                .with_endpoint("http://otel-collector.service.dc1.consul:4317")
+                .with_protocol(Protocol::Grpc)
+                .with_timeout(Duration::from_secs(3)),
+        )
+        .install_simple()
+        // .install_batch(opentelemetry::runtime::Tokio)
+        .expect("Error initializing Otlp exporter");
+
     // Create a tracing layer with the configured tracer
     let telemetry = tracing_opentelemetry::layer()
         // .with_tracer(stdout_tracer)
-        .with_tracer(jaeger_tracer);
+        // .with_tracer(jaeger_tracer);
+        .with_tracer(otlp_tracer);
 
     // let format = fmt::format()
     //     .pretty()
@@ -87,23 +106,21 @@ fn main() {
 
     {
         // Spans will be sent to the configured OpenTelemetry exporter
-        let root = span!(tracing::Level::TRACE, "app_start", work_units = 2);
-        let _enter = root.enter();
+        let root = trace_span!("app_start", work_units = 2).entered();
+        // let root = span!(tracing::Level::TRACE, "app_start", work_units = 2).entered();
 
         std::thread::sleep(std::time::Duration::from_millis(20));
         error!("xxxx start root span. cost=20ms");
         {
             // Spans will be sent to the configured OpenTelemetry exporter
-            let api1 = span!(tracing::Level::TRACE, "api_call_1", work_units = 4);
-            let _enter = api1.enter();
+            let api1 = span!(tracing::Level::TRACE, "api_call_1", work_units = 4).entered();
 
             // slow call
             std::thread::sleep(std::time::Duration::from_millis(40));
             warn!("xxxx call api1 done. cost=40ms");
             {
                 // Spans will be sent to the configured OpenTelemetry exporter
-                let api2 = span!(tracing::Level::TRACE, "api_call_2", work_units = 4);
-                let _enter = api2.enter();
+                let api2 = span!(tracing::Level::TRACE, "api_call_2", work_units = 4).entered();
 
                 // slow call
                 std::thread::sleep(std::time::Duration::from_millis(80));
@@ -114,8 +131,7 @@ fn main() {
 
     {
         // Spans will be sent to the configured OpenTelemetry exporter
-        let root = span!(tracing::Level::TRACE, "app_exit", work_units = 3);
-        let _enter = root.enter();
+        let _sp = span!(tracing::Level::TRACE, "app_exit", work_units = 3).entered();
         std::thread::sleep(std::time::Duration::from_millis(60));
         info!("xxxx exit span. cost=60ms");
     }
