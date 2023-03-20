@@ -57,7 +57,7 @@ async fn main() {
         .with_exporter(
             opentelemetry_otlp::new_exporter()
                 .tonic()
-                .with_endpoint("http://otel-collector.service.dc1.consul:4317")
+                .with_endpoint("http://tempo.service.dc1.consul:4317")
                 .with_protocol(Protocol::Grpc)
                 .with_timeout(Duration::from_secs(3)),
         )
